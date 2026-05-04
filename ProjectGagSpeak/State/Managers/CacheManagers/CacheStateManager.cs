@@ -576,8 +576,7 @@ public class CacheStateManager : IHostedService
             AddArousalStrength(key, item.RefItem.Arousal)
         };
         // Conditional additions
-        if (_config.Current.CursedItemsApplyTraits && item.ApplyTraits) tasks.Add(AddTraits(key, item.RefItem.Traits & ~ (Traits.Immobile | Traits.Weighty)));
-
+        if (_config.Current.CursedItemsApplyTraits && item.ApplyTraits) tasks.Add(AddTraits(key, item.RefItem.Traits &~ (Traits.Immobile | Traits.Weighty)));
         if (_config.Current.CursedItemsApplyOverlays)
         {
             if (item.RefItem is BlindfoldRestriction bfr) tasks.Add(AddBlindfold(key, bfr.Properties));
