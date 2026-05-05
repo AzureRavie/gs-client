@@ -29,6 +29,7 @@ public sealed class CallbackHandler : DisposableMediatorSubscriberBase
     private readonly CursedLootManager _cursedLoot;
     private readonly PuppeteerManager _puppeteer;
     private readonly CacheStateManager _cacheManager;
+    private readonly MainConfig _config;
 
     public CallbackHandler(
         ILogger<CallbackHandler> logger,
@@ -56,6 +57,7 @@ public sealed class CallbackHandler : DisposableMediatorSubscriberBase
         _puppeteer = aliasManager;
         _cacheManager = cacheManager;
         _provider = provider;
+        _config = config;
     }
 
     private bool PostActionMsg(string enactor, InteractionType type, string message)
@@ -370,7 +372,7 @@ public sealed class CallbackHandler : DisposableMediatorSubscriberBase
 
         // apply the gag, and it's visual updates.
         if (_gags.ApplyGag(layer, newData.GagItem, "Mimic", out var gagItem))
-            await _cacheManager.AddGagItem(gagItem, layer, "Mimic");
+            await _cacheManager.AddGagItem(gagItem, layer, "Mimic", _config.Current.CursedItemsApplyTraits && item.ApplyTraits);
 
         // Lock it immediately.
         _gags.LockGag(layer, newData, "Mimic");
