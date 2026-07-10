@@ -690,6 +690,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
         var dtrVibeStatus = _mainConfig.Current.ShowVibeStatus;
 
         var preferThreeCharaAnonName = _mainConfig.Current.PreferThreeCharaAnonName;
+        var showChatInputPreview = _mainConfig.Current.ShowChatInputPreview;
 
         var showProfiles = _mainConfig.Current.ShowProfiles;
         var profileDelay = _mainConfig.Current.ProfileDelay;
@@ -747,6 +748,13 @@ public class SettingsUi : WindowMediatorSubscriberBase
             _mainConfig.Save();
         }
         CkGui.HelpText(GSLoc.Settings.Preferences.PrefThreeCharaAnonNameTT);
+
+        if (ImGui.Checkbox(GSLoc.Settings.Preferences.ShowChatInputPreview, ref showChatInputPreview))
+        {
+            _mainConfig.Current.ShowChatInputPreview = showChatInputPreview;
+            _mainConfig.Save();
+        }
+        CkGui.HelpText(GSLoc.Settings.Preferences.ShowChatInputPreviewTT);
 
         if (ImGui.Checkbox(GSLoc.Settings.Preferences.ShowProfilesLabel, ref showProfiles))
         {
