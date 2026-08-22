@@ -15,6 +15,16 @@ public class AddressBookEntry
     public int Apartment = 1;
     public bool ApartmentSubdivision = false;
 
+    /// <summary> 0 is the default, ushort.MaxValue is what WorldCombo starts at. </summary>
+    public bool HasWorld => World is not 0 and not ushort.MaxValue;
+
+    /// <summary>
+    ///     If this can be handed to Lifestream; false means nearest-node mode. Ward/plot/room are
+    ///     indexed as (value - 1), so 0 means unset rather than "the first one".
+    /// </summary>
+    public bool IsUsable => HasWorld && Ward >= 1
+        && (PropertyType is PropertyType.Apartment ? Apartment >= 1 : Plot >= 1);
+
     public AddressBookEntryTuple AsTuple()
     {
         return (Name, (int)World, (int)City, Ward, (int)PropertyType, Plot, Apartment, ApartmentSubdivision, false, string.Empty);

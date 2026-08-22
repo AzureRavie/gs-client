@@ -1,5 +1,6 @@
 using Dalamud.Game.ClientState.Keys;
 using GagSpeak.GameInternals;
+using GagSpeak.Interop.Helpers;
 using GagSpeak.PlayerClient;
 using GagSpeak.Services.Mediator;
 using GagSpeak.Utils;
@@ -46,8 +47,18 @@ public sealed class PlayerControlCache
         || _traits.FinalTraits.HasAny(Traits.Immobile)
         || _activeTaskControl.HasAny(HcTaskControl.NoActions);
 
+    /// <summary>
+    ///     We tell an off-world kinkster to make their own way over, so blocking teleport too is a dead end.
+    /// </summary>
+    private bool ConfinedOffWorld
+        => ClientData.Hardcore is { } hc
+        && hc.IsEnabled(HcAttribute.Confinement)
+        && AddressBookEntry.FromHardcoreStatus(hc) is { IsUsable: true } addr
+        && !HcConfinement.OnConfinedWorld(addr);
+
     public bool BlockTeleportActions
         => !_activeTaskControl.HasAny(HcTaskControl.InLifestreamTask)
+        && !ConfinedOffWorld
         && (ClientData.Hardcore.IsEnabled(HcAttribute.Follow)
         || ClientData.Hardcore.IsEnabled(HcAttribute.EmoteState)
         || ClientData.Hardcore.IsEnabled(HcAttribute.Confinement)
@@ -128,6 +139,15 @@ public sealed class PlayerControlCache
         => ClientData.Hardcore.IsEnabled(HcAttribute.Confinement)
         || ClientData.Hardcore.IsEnabled(HcAttribute.Imprisonment)
         || _activeTaskControl.HasAny(HcTaskControl.DoConfinementPrompts);
+
+    /// <summary>
+    ///     Whether to refuse the "leave this property" prompt. Only ever lock them into the property
+    ///     confinement target; locking them into whatever house they stood in traps them.
+    /// </summary>
+    public bool BlockPropertyExit
+        => ClientData.Hardcore is { } hc
+        && (hc.IsEnabled(HcAttribute.Imprisonment)
+        || (hc.IsEnabled(HcAttribute.Confinement) && HcConfinement.AtConfinedProperty(AddressBookEntry.FromHardcoreStatus(hc))));
 
     public CameraControlMode GetPerspectiveToLock()
         => ShouldLockFirstPerson ? CameraControlMode.FirstPerson :
