@@ -79,7 +79,10 @@ public sealed class AutoPromptController : DisposableMediatorSubscriberBase
         var yesno = (AddonSelectYesno*)addonInfo.Addon.Address;
         var baseAddon = (AtkUnitBase*)yesno;
 
-        string[] nodesToDecline = [ ..GsLang.ConfirmHouseExit, ..GsLang.ConfirmChamberLeave ];
+        // Refusing this everywhere locks them inside whatever house they were in when it kicked in.
+        string[] nodesToDecline = _cache.BlockPropertyExit
+            ? [ ..GsLang.ConfirmHouseExit, ..GsLang.ConfirmChamberLeave ]
+            : [];
         string[] nodesToDeclineContains = [ ..GsLang.ConfirmTeleportOffer ];
         string[] nodesToAccept = [ ..GsLang.ConfirmHouseEntrance ];
 
