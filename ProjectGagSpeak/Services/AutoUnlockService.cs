@@ -5,7 +5,6 @@ using GagSpeak.Kinksters;
 using GagSpeak.PlayerClient;
 using GagSpeak.Services.Controller;
 using GagSpeak.Services.Mediator;
-using GagSpeak.State.Caches;
 using GagSpeak.State.Handlers;
 using GagSpeak.State.Listeners;
 using GagSpeak.State.Managers;
@@ -51,7 +50,7 @@ public sealed class AutoUnlockService : BackgroundService
     private readonly CharaDataDistributor _dds;
     private readonly MainConfig _config;
     private readonly CacheStateManager _cacheManager;
-    private readonly TraitsCache _traits;
+    private readonly HardcoreEscapeService _escape;
     
     // the interval tasks to check for
     private readonly List<Task> _intervalTasks = [];
@@ -65,7 +64,7 @@ public sealed class AutoUnlockService : BackgroundService
         KinksterManager kinksters, GagRestrictionManager gags, RestrictionManager restrictions, 
         RestraintManager restraints, CursedLootManager cursedLoot, PatternManager patterns, 
         AlarmManager alarms, CallbackHandler visuals, PlayerCtrlHandler hcHandler, 
-        CharaDataDistributor dds, MainConfig config, CacheStateManager cacheManager, TraitsCache traits)
+        CharaDataDistributor dds, MainConfig config, CacheStateManager cacheManager, HardcoreEscapeService escape)
     {
         _logger = logger;
         _mediator = mediator;
@@ -84,7 +83,7 @@ public sealed class AutoUnlockService : BackgroundService
         _dds = dds;
         _config = config;
         _cacheManager = cacheManager;
-        _traits = traits;
+        _escape = escape;
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -210,7 +209,7 @@ public sealed class AutoUnlockService : BackgroundService
 
                 // Auto remove Gag if configured to do so.
                 var shouldAutoRemove = _config.Data.RemoveGagOnTimerExpire &&
-                                       (!_config.Data.HardcoreEscape || _traits.FinalTraits is Traits.None || backup.PadlockAssigner != MainHub.UID);
+                                       (!_config.Data.HardcoreEscape || _escape.CanDisable || backup.PadlockAssigner != MainHub.UID);
                 if (shouldAutoRemove &&
                     await _dds.PushNewActiveGagSlot(index, new ActiveGagSlot(), DataUpdateType.Removed)
                               .ConfigureAwait(false) is not null)
@@ -257,7 +256,7 @@ public sealed class AutoUnlockService : BackgroundService
                 
                 // Auto remove if configured to do so.
                 var shouldAutoRemove = _config.Data.RemoveRestrictionOnTimerExpire &&
-                                       (!_config.Data.HardcoreEscape || _traits.FinalTraits is Traits.None || backup.PadlockAssigner != MainHub.UID);
+                                       (!_config.Data.HardcoreEscape || _escape.CanDisable || backup.PadlockAssigner != MainHub.UID);
                 if (shouldAutoRemove &&
                     await _dds.PushNewActiveRestriction(index, new ActiveRestriction(), DataUpdateType.Removed)
                               .ConfigureAwait(false) is not null)
@@ -305,7 +304,7 @@ public sealed class AutoUnlockService : BackgroundService
             
             // Auto remove if configured to do so.
             var shouldAutoRemove = _config.Data.RemoveRestraintOnTimerExpire &&
-                                   (!_config.Data.HardcoreEscape || _traits.FinalTraits is Traits.None || backup.PadlockAssigner != MainHub.UID);
+                                   (!_config.Data.HardcoreEscape || _escape.CanDisable || backup.PadlockAssigner != MainHub.UID);
             if (shouldAutoRemove &&
                 await _dds.PushNewActiveRestraint(new CharaActiveRestraint(), DataUpdateType.Removed)
                           .ConfigureAwait(false) is not null)
