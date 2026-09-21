@@ -210,7 +210,7 @@ public sealed class AutoUnlockService : BackgroundService
 
                 // Auto remove Gag if configured to do so.
                 var shouldAutoRemove = _config.Data.RemoveGagOnTimerExpire &&
-                                       (!_config.Data.HardcoreEscape || _traits.FinalTraits is Traits.None);
+                                       (!_config.Data.HardcoreEscape || _traits.FinalTraits is Traits.None || backup.PadlockAssigner != MainHub.UID);
                 if (shouldAutoRemove &&
                     await _dds.PushNewActiveGagSlot(index, new ActiveGagSlot(), DataUpdateType.Removed)
                               .ConfigureAwait(false) is not null)
@@ -257,7 +257,7 @@ public sealed class AutoUnlockService : BackgroundService
                 
                 // Auto remove if configured to do so.
                 var shouldAutoRemove = _config.Data.RemoveRestrictionOnTimerExpire &&
-                                       (!_config.Data.HardcoreEscape || _traits.FinalTraits is Traits.None);
+                                       (!_config.Data.HardcoreEscape || _traits.FinalTraits is Traits.None || backup.PadlockAssigner != MainHub.UID);
                 if (shouldAutoRemove &&
                     await _dds.PushNewActiveRestriction(index, new ActiveRestriction(), DataUpdateType.Removed)
                               .ConfigureAwait(false) is not null)
@@ -305,7 +305,7 @@ public sealed class AutoUnlockService : BackgroundService
             
             // Auto remove if configured to do so.
             var shouldAutoRemove = _config.Data.RemoveRestraintOnTimerExpire &&
-                                   (!_config.Data.HardcoreEscape || _traits.FinalTraits is Traits.None);
+                                   (!_config.Data.HardcoreEscape || _traits.FinalTraits is Traits.None || backup.PadlockAssigner != MainHub.UID);
             if (shouldAutoRemove &&
                 await _dds.PushNewActiveRestraint(new CharaActiveRestraint(), DataUpdateType.Removed)
                           .ConfigureAwait(false) is not null)
