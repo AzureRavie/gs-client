@@ -19,11 +19,13 @@ public sealed class ArousalService : IDisposable
 
     private readonly CancellationTokenSource _timerCts = new();
     private Task? _timerTask;
+    private DateTime _lastSave = DateTime.MinValue;
 
     public ArousalService(ILogger<ArousalService> logger, MainConfig config)
     {
         _logger = logger;
         _config = config;
+        Arousal = config.Data.Arousal;
         UpdateFinalCache();
         _timerTask = Task.Run(TimerTask, _timerCts.Token);
     }
@@ -88,6 +90,7 @@ public sealed class ArousalService : IDisposable
     public static bool DoGcdDelay => ArousalEffects.ShouldSlowGCD(EffectPercent) && _config.Data.ArousalGcdDelay;
     public static float GcdDelayFactor => DoGcdDelay ? ArousalEffects.GCDFactor(EffectPercent) : 1f;
     public static bool HasChatEffects => DoStutter || DoLimitedWords;
+    public static bool AnyEffectActive => HasChatEffects || DoBlush || DoGcdDelay;
 
     #region Public Methods
     /// <summary> Marks a <see cref="CombinedCacheKey"/> for an Arousal <paramref name="strength"/>.</summary>
@@ -279,6 +282,7 @@ public sealed class ArousalService : IDisposable
     /// <summary> Called on each new frequency point. </summary>
     public void Update()
     {
+        SaveArousal();
         if (StaticArousal <= 0)
         {
             // Decay if nothing worn has an arousal strength.
@@ -293,6 +297,17 @@ public sealed class ArousalService : IDisposable
         Arousal = Math.Clamp(newArousal, 0f, AROUSAL_CAP);
         // Log the current arousal state.
         _logger.LogTrace($"Updated Arousal: {(float)Arousal} (Static: {StaticArousal})", LogFilter.Arousal);
+    }
+
+    /// <summary> Persists the current arousal at most once a minute. </summary>
+    private void SaveArousal()
+    {
+        if (_config.Data.Arousal == Arousal || DateTime.UtcNow - _lastSave < TimeSpan.FromMinutes(1))
+            return;
+
+        _config.Data.Arousal = Arousal;
+        _config.Save();
+        _lastSave = DateTime.UtcNow;
     }
 
     #region DebugHelper
