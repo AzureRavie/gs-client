@@ -36,6 +36,7 @@ public sealed class PatternManager : DisposableMediatorSubscriberBase, IHybridSa
     public Pattern? ItemInEditor => _itemEditor.ItemInEditor;
     public Guid ActivePatternId => _remotes.ClientData.ActivePattern;
     public bool CanRecordPattern => _remotes.CanRecord;
+    public bool HasValidToys => _remotes.HasValidToys;
 
     public Pattern CreateNew(string patternName)
     {
