@@ -72,7 +72,8 @@ public sealed class RemoteService : DisposableMediatorSubscriberBase
 
     public ClientPlotedDevices ClientData { get; private set; }
     public bool IsClientBeingBuzzed => ClientData.UserIsBeingBuzzed;
-    public bool CanRecord => !ClientData.InRecordingMode && !_lobbyManager.IsInVibeRoom;
+    public bool HasValidToys => ClientData.Devices.Any();
+    public bool CanRecord => HasValidToys && !ClientData.InRecordingMode && !_lobbyManager.IsInVibeRoom;
     public string SelectedKey
     {
         get => _selectedKey;
